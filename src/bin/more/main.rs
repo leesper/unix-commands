@@ -1,7 +1,7 @@
 use std::{io::Read, io::Cursor, env, fs::File};
 
-const PAGE_LEN: u32 = 24;
-const LINE_LEN: u32 = 512;
+const PAGE_LEN: i32 = 24;
+const LINE_LEN: i32 = 512;
 fn main() {
     let args = env::args().skip(1).collect();
     let file_list = parse_file_names(args);
@@ -20,17 +20,18 @@ fn parse_file_names(args: Vec<String>) -> Vec<String> {
     return file_list;
 }
 
-fn see_more<R>(mut reader: R) -> u32 where R: Read {
+fn see_more<R>(mut reader: R) -> i32 where R: Read {
     let mut cmd = [0; 1];
     let mut nbytes = reader.read(&mut cmd).unwrap();
-    let mut reply: u32 = 0;
+    let mut reply: i32 = -1;
 
     while nbytes > 0 {
-        if cmd[0] as char == ' ' {
-            reply = PAGE_LEN;
-        } else if cmd[0] as char == '\n' {
-            reply = 1
-        }
+        reply = match cmd[0] as char {
+            ' ' => PAGE_LEN,
+            '\n' => 1,
+            'q' => 0,
+            _ => continue
+        };
         nbytes = reader.read(&mut cmd).unwrap();
     }
 
@@ -75,6 +76,12 @@ mod tests {
         assert_eq!(1, reply);
     }
     // TODO: should see_more() return 0 if q
+    #[test]
+    fn should_see_more_zero_if_q() {
+        let reader = Cursor::new("q");
+        let reply = see_more(reader);
+        assert_eq!(0, reply);
+    }
 }
 
 
