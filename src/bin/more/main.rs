@@ -64,23 +64,17 @@ mod tests {
         assert!(result.is_err());
     }
     #[test]
-    fn should_see_more_one_page_if_space() {
-        let reader = Cursor::new(" ");
-        let reply = see_more(reader);
-        assert_eq!(PAGE_LEN, reply);
-    }
-    #[test]
-    fn should_see_more_one_line_if_enter() {
-        let reader = Cursor::new("\n");
-        let reply = see_more(reader);
-        assert_eq!(1, reply);
-    }
-    // TODO: should see_more() return 0 if q
-    #[test]
-    fn should_see_more_zero_if_q() {
-        let reader = Cursor::new("q");
-        let reply = see_more(reader);
-        assert_eq!(0, reply);
+    fn should_see_more_behave_as_expected() {
+        let cases = vec![
+            (" ", PAGE_LEN, format!("{} expected", PAGE_LEN)),
+            ("\n", 1, "1 expected".to_string()),
+            ("q", 0, "0 expected".to_string()),
+        ];
+        for (input, expected, message) in cases {
+            let reader = Cursor::new(input);
+            let actual = see_more(reader);
+            assert_eq!(expected, actual, "{}", message);
+        }
     }
 }
 
