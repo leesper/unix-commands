@@ -1,5 +1,4 @@
-use std::{io, env, fs::File, str::FromStr};
-use std::io::Read;
+use std::{io::Read, io::Cursor, env, fs::File};
 
 const PAGE_LEN: u32 = 24;
 const LINE_LEN: u32 = 512;
@@ -23,11 +22,16 @@ fn parse_file_names(args: Vec<String>) -> Vec<String> {
 
 fn see_more<R>(mut reader: R) -> u32 where R: Read {
     let mut cmd = [0; 1];
-    let _ = reader.read(&mut cmd);
+    let mut nbytes = reader.read(&mut cmd).unwrap();
     let mut reply: u32 = 0;
 
-    if cmd[0] as char == ' ' {
-        reply = PAGE_LEN;
+    while nbytes > 0 {
+        if cmd[0] as char == ' ' {
+            reply = PAGE_LEN;
+        } else if cmd[0] as char == '\n' {
+            reply = 1
+        }
+        nbytes = reader.read(&mut cmd).unwrap();
     }
 
     return reply;
@@ -60,11 +64,16 @@ mod tests {
     }
     #[test]
     fn should_see_more_one_page_if_space() {
-        let repeater = io::repeat(u8::try_from(' ').unwrap());
-        let answer = see_more(repeater);
-        assert_eq!(PAGE_LEN, answer);
+        let reader = Cursor::new(" ");
+        let reply = see_more(reader);
+        assert_eq!(PAGE_LEN, reply);
     }
-    // TODO: should see_more() return 1 if ENTER
+    #[test]
+    fn should_see_more_one_line_if_enter() {
+        let reader = Cursor::new("\n");
+        let reply = see_more(reader);
+        assert_eq!(1, reply);
+    }
     // TODO: should see_more() return 0 if q
 }
 
