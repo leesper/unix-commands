@@ -1,5 +1,8 @@
-use std::{self, env, fs::File};
+use std::{io, env, fs::File, str::FromStr};
+use std::io::Read;
 
+const PAGE_LEN: u32 = 24;
+const LINE_LEN: u32 = 512;
 fn main() {
     let args = env::args().skip(1).collect();
     let file_list = parse_file_names(args);
@@ -18,6 +21,18 @@ fn parse_file_names(args: Vec<String>) -> Vec<String> {
     return file_list;
 }
 
+fn see_more<R>(mut reader: R) -> u32 where R: Read {
+    let mut cmd = [0; 1];
+    let _ = reader.read(&mut cmd);
+    let mut reply: u32 = 0;
+
+    if cmd[0] as char == ' ' {
+        reply = PAGE_LEN;
+    }
+
+    return reply;
+}
+
 // 1. more filename...
 // let filenames = get file list from args;
 // for name in filenames {
@@ -28,8 +43,7 @@ fn parse_file_names(args: Vec<String>) -> Vec<String> {
 // 3. more < filename
 #[cfg(test)]
 mod tests {
-    use std::fmt::Error;
-    use std::io;
+
     use super::*;
     #[test]
     fn should_retrieve_file_list_from_args() {
@@ -44,12 +58,14 @@ mod tests {
         let result = File::open("file_not_exist");
         assert!(result.is_err());
     }
-    // TODO: should display a screenful of text in terminal(24*512)
-    // TODO: should display a ":" at the bottom
-    // TODO: should read user input from keyboard
-    // TODO: should advance one screen if SPACE
-    // TODO: should advance one line if ENTER
-    // TODO: should exit if q
+    #[test]
+    fn should_see_more_one_page_if_space() {
+        let repeater = io::repeat(u8::try_from(' ').unwrap());
+        let answer = see_more(repeater);
+        assert_eq!(PAGE_LEN, answer);
+    }
+    // TODO: should see_more() return 1 if ENTER
+    // TODO: should see_more() return 0 if q
 }
 
 
