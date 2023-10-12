@@ -1,7 +1,7 @@
-use std::env;
+use std::{self, env, fs::File};
 
 fn main() {
-    let args = env::args().collect();
+    let args = env::args().skip(1).collect();
     let file_list = parse_file_names(args);
     for file in &file_list {
         println!("{}", file);
@@ -20,15 +20,16 @@ fn parse_file_names(args: Vec<String>) -> Vec<String> {
 
 // 1. more filename...
 // let filenames = get file list from args;
-// let morer = new Morer();
 // for name in filenames {
 //      let file = File::new(name);
-//      morer.do_more(&file);
+//      do_more(&file);
 // }
 // 2. command | more
 // 3. more < filename
 #[cfg(test)]
 mod tests {
+    use std::fmt::Error;
+    use std::io;
     use super::*;
     #[test]
     fn should_retrieve_file_list_from_args() {
@@ -37,7 +38,12 @@ mod tests {
         assert_eq!(vec!["file1".to_string(), "file2".to_string(), "file3".to_string()], file_list);
     }
 
-    // - Morer
+    // - more
+    #[test]
+    fn should_return_error_if_file_not_exist() {
+        let result = File::open("file_not_exist");
+        assert!(result.is_err());
+    }
     // TODO: should display a screenful of text in terminal(24*512)
     // TODO: should display a ":" at the bottom
     // TODO: should read user input from keyboard
