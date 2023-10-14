@@ -4,13 +4,13 @@ const PAGE_LEN: i32 = 24;
 const LINE_LEN: i32 = 512;
 fn main() {
     let args = env::args().skip(1).collect();
-    let file_list = parse_file_names(args);
+    let file_list = filter_files(args);
     for file in &file_list {
         println!("{}", file);
     }
 }
 
-fn parse_file_names(args: Vec<String>) -> Vec<String> {
+fn filter_files(args: Vec<String>) -> Vec<String> {
     let mut file_list: Vec<String> = Vec::new();
     for arg in args.iter() {
         if !arg.starts_with("-") {
@@ -37,23 +37,43 @@ fn see_more<R>(mut reader: R) -> i32 where R: Read {
 
     return reply;
 }
-
+// requirements: a more command in rust
 // 1. more filename...
+// (1) show the contents of files one by one
+// (2) show the content of one file page by page(24 lines * 512 characters)
+// (3) hit SPACE to advance next page
+// (4) hit ENTER to advance next one line
+// (5) hit q to exit
+// 2. command | more
+// (1) pipe another command's output as input
+// 3. more < filename
+// (1) redirect file content as more's input
+
+// function points:
+// 1. more file
+// (1) args -> file list
+// should filter out files from args
+// (2) display page
+// TODO: should return error if file not exist
+// TODO: should read at most 512 characters per line
+// (3) process user command
+// TODO: should read next page of 24 lines if ENTER
+// TODO: should read next line if SPACE
+// TODO: should read no line if q
+
 // let filenames = get file list from args;
 // for name in filenames {
 //      let file = File::new(name);
 //      do_more(&file);
 // }
-// 2. command | more
-// 3. more < filename
 #[cfg(test)]
 mod tests {
-
     use super::*;
+
     #[test]
-    fn should_retrieve_file_list_from_args() {
+    fn should_filter_out_files_from_args() {
         let args = vec!["-h".to_string(), "file1".to_string(), "-s".to_string(), "-t".to_string(), "file2".to_string(), "file3".to_string()];
-        let file_list = parse_file_names(args);
+        let file_list = filter_files(args);
         assert_eq!(vec!["file1".to_string(), "file2".to_string(), "file3".to_string()], file_list);
     }
 
